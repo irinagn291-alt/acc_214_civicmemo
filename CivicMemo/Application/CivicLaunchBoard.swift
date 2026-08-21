@@ -1,4 +1,3 @@
-import ComposableArchitecture
 import SwiftUI
 @preconcurrency import Alamofire
 
@@ -71,7 +70,7 @@ struct CivicWebPane: View {
 
 struct CivicLaunchCanvas: View {
     @ObservedObject var board: CivicLaunchBoard
-    let desk: StoreOf<DeskRootFeature>
+    let desk: DeskRootFeature
 
     var body: some View {
         switch board.surface {
@@ -80,7 +79,7 @@ struct CivicLaunchCanvas: View {
         case .web(let raw):
             CivicWebPane(raw: raw)
         case .desk:
-            DeskRootView(store: desk)
+            DeskRootView(root: desk)
                 .preferredColorScheme(.light)
         }
     }

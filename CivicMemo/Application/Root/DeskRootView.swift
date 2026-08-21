@@ -1,37 +1,18 @@
-import ComposableArchitecture
 import SwiftUI
 
 struct DeskRootView: View {
-  @Bindable var store: StoreOf<DeskRootFeature>
+  @Bindable var root: DeskRootFeature
 
   var body: some View {
     Group {
-      if let briefing = store.scope(state: \.briefing, action: \.briefing) {
-        BriefingView(store: briefing)
-      } else if let desk = store.scope(state: \.desk, action: \.desk) {
-        NavigationStack(path: $store.scope(state: \.path, action: \.path)) {
-          DeskTodayView(store: desk)
-        } destination: { store in
-          switch store.case {
-          case let .catalogLookup(store):
-            CatalogLookupView(store: store)
-          case let .barcodeCapture(store):
-            BarcodeCaptureView(store: store)
-          case let .articleBrief(store):
-            ArticleBriefView(store: store)
-          case let .slotAssign(store):
-            SlotAssignView(store: store)
-          case let .eatenRoster(store):
-            EatenRosterView(store: store)
-          case let .wishBoard(store):
-            WishBoardView(store: store)
-          case let .quotaEditor(store):
-            QuotaEditorView(store: store)
-          case let .deskPlan(store):
-            DeskPlanView(store: store)
-          case let .seatRoster(store):
-            SeatRosterView(store: store)
-          }
+      if let briefing = root.briefing {
+        BriefingView(board: briefing)
+      } else if let desk = root.desk {
+        NavigationStack(path: $root.path) {
+          DeskTodayView(board: desk)
+            .navigationDestination(for: DeskRoute.self) { route in
+              destination(route)
+            }
         }
       } else {
         ZStack {
@@ -41,14 +22,52 @@ struct DeskRootView: View {
       }
     }
     .tint(CivicPalette.blue)
-    .onAppear { store.send(.appear) }
+    .onAppear { root.appear() }
+  }
+
+  @ViewBuilder
+  private func destination(_ route: DeskRoute) -> some View {
+    switch route {
+    case .catalogLookup:
+      CatalogLookupView(board: root.lookup)
+    case .barcodeCapture:
+      BarcodeCaptureView(board: root.capture)
+    case .articleBrief:
+      if let brief = root.brief {
+        ArticleBriefView(board: brief)
+      }
+    case .slotAssign:
+      if let assign = root.assign {
+        SlotAssignView(board: assign)
+      }
+    case .eatenRoster:
+      if let eaten = root.eaten {
+        EatenRosterView(board: eaten)
+      }
+    case .wishBoard:
+      if let wish = root.wish {
+        WishBoardView(board: wish)
+      }
+    case .quotaEditor:
+      if let quota = root.quota {
+        QuotaEditorView(board: quota)
+      }
+    case .deskPlan:
+      if let plan = root.plan {
+        DeskPlanView(board: plan)
+      }
+    case .seatRoster:
+      if let seats = root.seats {
+        SeatRosterView(board: seats)
+      }
+    }
   }
 }
 
 #Preview {
-  DeskRootView(
-    store: Store(initialState: DeskRootFeature.State(briefing: BriefingFeature.State())) {
-      DeskRootFeature()
-    }
-  )
+  DeskRootView(root: {
+    let root = DeskRootFeature(archive: .memoryPreview)
+    root.briefing = BriefingFeature()
+    return root
+  }())
 }

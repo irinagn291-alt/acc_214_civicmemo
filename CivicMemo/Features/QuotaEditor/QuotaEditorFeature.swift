@@ -1,67 +1,47 @@
-import ComposableArchitecture
 import SwiftUI
 
-@Reducer
-struct QuotaEditorFeature {
-  @ObservableState
-  struct State: Equatable {
-    var energy: String
-    var protein: String
-    var carbs: String
-    var fat: String
+@MainActor
+@Observable
+final class QuotaEditorFeature {
+  var energy: String
+  var protein: String
+  var carbs: String
+  var fat: String
+  var onSaved: ((NutritionQuota) -> Void)?
 
-    init(quota: NutritionQuota) {
-      energy = String(Int(quota.energyKcal))
-      protein = String(Int(quota.proteinGrams))
-      carbs = String(Int(quota.carbGrams))
-      fat = String(Int(quota.fatGrams))
-    }
+  init(quota: NutritionQuota) {
+    energy = String(Int(quota.energyKcal))
+    protein = String(Int(quota.proteinGrams))
+    carbs = String(Int(quota.carbGrams))
+    fat = String(Int(quota.fatGrams))
   }
 
-  enum Action: BindableAction, Equatable {
-    case binding(BindingAction<State>)
-    case save
-    case delegate(Delegate)
-    enum Delegate: Equatable {
-      case saved(NutritionQuota)
-    }
-  }
-
-  var body: some ReducerOf<Self> {
-    BindingReducer()
-    Reduce { state, action in
-      switch action {
-      case .binding:
-        return .none
-      case .save:
-        let quota = NutritionQuota(
-          energyKcal: Double(state.energy) ?? NutritionQuota.civicDefault.energyKcal,
-          proteinGrams: Double(state.protein) ?? NutritionQuota.civicDefault.proteinGrams,
-          carbGrams: Double(state.carbs) ?? NutritionQuota.civicDefault.carbGrams,
-          fatGrams: Double(state.fat) ?? NutritionQuota.civicDefault.fatGrams
-        )
-        return .send(.delegate(.saved(quota)))
-      case .delegate:
-        return .none
-      }
-    }
+  func save() {
+    onSaved?(
+      NutritionQuota(
+        energyKcal: Double(energy) ?? NutritionQuota.civicDefault.energyKcal,
+        proteinGrams: Double(protein) ?? NutritionQuota.civicDefault.proteinGrams,
+        carbGrams: Double(carbs) ?? NutritionQuota.civicDefault.carbGrams,
+        fatGrams: Double(fat) ?? NutritionQuota.civicDefault.fatGrams
+      )
+    )
   }
 }
 
 struct QuotaEditorView: View {
-  @Bindable var store: StoreOf<QuotaEditorFeature>
+  @Bindable var board: QuotaEditorFeature
   @State private var showContact = false
 
   var body: some View {
     ZStack {
       CivicBlotter()
       VStack(spacing: 14) {
-        field("Energy kcal", text: $store.energy)
-        field("Protein g", text: $store.protein)
-        field("Carbs g", text: $store.carbs)
-        field("Fat g", text: $store.fat)
+        field("Energy kcal", text: $board.energy)
+        field("Protein g", text: $board.protein)
+        field("Carbs g", text: $board.carbs)
+        field("Fat g", text: $board.fat)
         CivicPrimaryButton(title: "Save goals") {
-          store.send(.save)
+          board.save()
         }
         CivicPrimaryButton(title: "Contact Us") {
           showContact = true

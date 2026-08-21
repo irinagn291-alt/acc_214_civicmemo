@@ -1,41 +1,28 @@
-import ComposableArchitecture
 import SwiftUI
 
-@Reducer
-struct EatenRosterFeature {
-  @ObservableState
-  struct State: Equatable {
-    var records: [IntakeRecord]
+@MainActor
+@Observable
+final class EatenRosterFeature {
+  var records: [IntakeRecord]
+  var onDelete: ((UUID) -> Void)?
+
+  init(records: [IntakeRecord]) {
+    self.records = records
   }
 
-  enum Action: Equatable {
-    case delete(UUID)
-    case delegate(Delegate)
-    enum Delegate: Equatable {
-      case delete(UUID)
-    }
-  }
-
-  var body: some ReducerOf<Self> {
-    Reduce { state, action in
-      switch action {
-      case let .delete(id):
-        state.records.removeAll { $0.id == id }
-        return .send(.delegate(.delete(id)))
-      case .delegate:
-        return .none
-      }
-    }
+  func delete(_ id: UUID) {
+    records.removeAll { $0.id == id }
+    onDelete?(id)
   }
 }
 
 struct EatenRosterView: View {
-  let store: StoreOf<EatenRosterFeature>
+  @Bindable var board: EatenRosterFeature
 
   var body: some View {
     ZStack {
       CivicBlotter()
-      if store.records.isEmpty {
+      if board.records.isEmpty {
         CivicEmptyBoard(
           image: "EmptyEaten",
           title: "Nothing consumed",
@@ -45,7 +32,7 @@ struct EatenRosterView: View {
       } else {
         List {
           ForEach(DeskSlot.allCases, id: \.self) { slot in
-            let rows = store.records.filter { $0.slot == slot }
+            let rows = board.records.filter { $0.slot == slot }
             if !rows.isEmpty {
               Section(slot.deskTitle) {
                 ForEach(rows) { row in
@@ -64,7 +51,7 @@ struct EatenRosterView: View {
                   }
                   .swipeActions {
                     Button(role: .destructive) {
-                      store.send(.delete(row.id))
+                      board.delete(row.id)
                     } label: {
                       Text("Drop")
                     }

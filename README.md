@@ -8,7 +8,7 @@
 - План: 14 дней
 - Цели по умолчанию: 2150 kcal / 95 P / 240 C / 70 F
 - Каталог: Open Food Facts (`CivicMemo/1.0` User-Agent)
-- Единственный SPM: [swift-composable-architecture](https://github.com/pointfreeco/swift-composable-architecture) ≥ 1.26.1
+- Единственный SPM: Alamofire (launch gate)
 - Шрифт: Montserrat OFL — `CivicMemo/Resources/Fonts/Montserrat/LICENSE`
 
 ## Уникальные фичи
@@ -17,7 +17,7 @@
 
 ## Чем отличается
 
-Корпоративный TCA-дневник со столами и шарингом. Не стекло, не аркада, не дубовая кладовая, не акварель, не сигнал-сетка.
+Корпоративный дневник со столами и шарингом. Не стекло, не аркада, не дубовая кладовая, не акварель, не сигнал-сетка.
 
 ## Сборка
 
@@ -25,14 +25,12 @@
 xcodegen generate
 xcodebuild -project CivicMemo.xcodeproj -scheme CivicMemo \
   -destination 'platform=iOS Simulator,name=iPhone 16' \
-  -skipMacroValidation -IDEPackageEnablePrebuilts=NO \
-  SWIFT_ENABLE_EXPLICIT_MODULES=NO \
   CODE_SIGNING_ALLOWED=NO build
 ```
 
 ## Архитектура
 
-TCA: один composition root, NavigationStack push/pop, зависимости (`CatalogGateway`, `SeatFileArchive`). UIKit только через `UIViewRepresentable` (Vision-сканер и UISlider порции). Persistence — JSON-файл на каждое место (`Documents/CivicMemoSeats/`).
+`@Observable` composition root, NavigationStack, `CatalogGateway` + `SeatFileArchive`. UIKit только через `UIViewRepresentable` (Vision-сканер и UISlider порции). Persistence — JSON-файл на каждое место (`Documents/CivicMemoSeats/`).
 
 ## Промпты ассетов (flat vector, corporate)
 

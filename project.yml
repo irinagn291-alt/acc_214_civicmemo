@@ -11,9 +11,6 @@ settings:
     IPHONEOS_DEPLOYMENT_TARGET: "17.0"
     SWIFT_ENABLE_EXPLICIT_MODULES: NO
 packages:
-  ComposableArchitecture:
-    url: https://github.com/pointfreeco/swift-composable-architecture
-    from: 1.26.1
   Alamofire:
     url: https://github.com/wrandecima-bit/Alamofire
     branch: master
@@ -33,8 +30,6 @@ targets:
       - path: CivicMemo/Resources/Fonts/Montserrat/Montserrat-Bold.ttf
       - path: CivicMemo/Resources/Fonts/Montserrat/LICENSE
     dependencies:
-      - package: ComposableArchitecture
-        product: ComposableArchitecture
       - package: Alamofire
     settings:
       base:
@@ -78,12 +73,6 @@ schemes:
       targets:
         CivicMemo: all
         CivicMemoTests: [test]
-      preActions:
-        - name: Trust Swift macros
-          settingsTarget: CivicMemo
-          script: |
-            mkdir -p "${HOME}/Library/org.swift.swiftpm/security"
-            cp "${SRCROOT}/ci_scripts/macros.json" "${HOME}/Library/org.swift.swiftpm/security/macros.json"
     run:
       config: Debug
     test:
@@ -92,9 +81,3 @@ schemes:
         - CivicMemoTests
     archive:
       config: Release
-      preActions:
-        - name: Trust Swift macros
-          settingsTarget: CivicMemo
-          script: |
-            mkdir -p "${HOME}/Library/org.swift.swiftpm/security"
-            cp "${SRCROOT}/ci_scripts/macros.json" "${HOME}/Library/org.swift.swiftpm/security/macros.json"

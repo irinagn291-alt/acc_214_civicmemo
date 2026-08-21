@@ -1,4 +1,3 @@
-@_exported import ComposableArchitecture
 import SwiftUI
 import UIKit
 
@@ -25,9 +24,7 @@ final class CivicAppDelegate: NSObject, UIApplicationDelegate {
 struct CivicMemoApp: App {
   @UIApplicationDelegateAdaptor(CivicAppDelegate.self) private var appDelegate
   @StateObject private var board = CivicLaunchBoard()
-  @State private var desk = Store(initialState: DeskRootFeature.State()) {
-    DeskRootFeature()
-  }
+  @State private var desk = DeskRootFeature()
 
   var body: some Scene {
     WindowGroup {

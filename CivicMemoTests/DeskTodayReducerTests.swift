@@ -3,8 +3,7 @@ import XCTest
 
 @MainActor
 final class DeskTodayReducerTests: XCTestCase {
-  func testApplyCommitUpdatesConsumedTotals() async {
-    // Given
+  func testApplyCommitUpdatesConsumedTotals() {
     let calendar = Calendar(identifier: .gregorian)
     let day = DayStamp(year: 2026, month: 8, day: 19)
     let seat = HouseholdSeat(
@@ -22,22 +21,20 @@ final class DeskTodayReducerTests: XCTestCase {
       day: day,
       kind: .consumed
     )
-    let store = TestStore(initialState: DeskTodayFeature.State(snapshot: snapshot, day: day)) {
-      DeskTodayFeature()
-    } withDependencies: {
-      $0.calendar = calendar
-      $0.seatFileArchive = .memoryPreview
-    }
+    let board = DeskTodayFeature(
+      snapshot: snapshot,
+      day: day,
+      archive: .memoryPreview,
+      calendar: calendar
+    )
 
-    // When
-    await store.send(.applyCommit(record)) {
-      $0.snapshot.records = [record]
-      $0.memoText = DayMemoComposer.text(snapshot: $0.snapshot, day: day, calendar: calendar)
-    }
-    await store.finish()
+    board.applyCommit(record)
 
-    // Then
-    XCTAssertEqual(store.state.totals.energyKcal, article.perHundred.energyKcal, accuracy: 0.001)
-    XCTAssertEqual(store.state.consumed.count, 1)
+    XCTAssertEqual(board.totals.energyKcal, article.perHundred.energyKcal, accuracy: 0.001)
+    XCTAssertEqual(board.consumed.count, 1)
+    XCTAssertEqual(
+      board.memoText,
+      DayMemoComposer.text(snapshot: board.snapshot, day: day, calendar: calendar)
+    )
   }
 }

@@ -3,56 +3,32 @@ import XCTest
 
 @MainActor
 final class SlotAssignReducerTests: XCTestCase {
-  func testBreakCannotBeScheduled() async {
-    // Given
+  func testBreakCannotBeScheduled() {
     let article = CivicDemoSeed.shelf[0]
     let today = DayStamp(year: 2026, month: 8, day: 19)
-    let store = TestStore(
-      initialState: SlotAssignFeature.State(article: article, grams: 80, today: today)
-    ) {
-      SlotAssignFeature()
-    }
-    store.exhaustivity = .on
+    let board = SlotAssignFeature(article: article, grams: 80, today: today)
 
-    // When
-    await store.send(.pickSlot(.breakSlot)) {
-      $0.slot = .breakSlot
-    }
-    await store.send(.pickKind(.scheduled)) {
-      $0.notice = "Break cannot be planned. Pick AM Desk, Midday, or PM Desk."
-    }
+    board.pickSlot(.breakSlot)
+    board.pickKind(.scheduled)
 
-    // Then
-    XCTAssertEqual(store.state.kind, .consumed)
-    XCTAssertEqual(store.state.slot, .breakSlot)
+    XCTAssertEqual(board.notice, "Break cannot be planned. Pick AM Desk, Midday, or PM Desk.")
+    XCTAssertEqual(board.kind, .consumed)
+    XCTAssertEqual(board.slot, .breakSlot)
   }
 
-  func testConfirmWritesConsumedBreak() async {
-    // Given
+  func testConfirmWritesConsumedBreak() {
     let article = CivicDemoSeed.shelf[6]
     let today = DayStamp(year: 2026, month: 8, day: 19)
     let fixed = UUID(uuidString: "CCCCCCCC-CCCC-CCCC-CCCC-CCCCCCCCCCCC")!
-    let store = TestStore(
-      initialState: SlotAssignFeature.State(article: article, grams: 30, today: today)
-    ) {
-      SlotAssignFeature()
-    } withDependencies: {
-      $0.uuid = .constant(fixed)
-    }
+    let board = SlotAssignFeature(article: article, grams: 30, today: today, makeID: { fixed })
 
-    await store.send(.pickSlot(.breakSlot)) {
-      $0.slot = .breakSlot
-    }
+    board.pickSlot(.breakSlot)
+    let record = board.confirm()
 
-    // When
-    await store.send(.confirm)
-    await store.receive({
-      guard case .delegate(.committed(let record)) = $0 else { return false }
-      return record.id == fixed && record.slot == .breakSlot && record.kind == .consumed
-    })
-
-    // Then
-    XCTAssertEqual(store.state.slot, .breakSlot)
-    XCTAssertEqual(store.state.kind, .consumed)
+    XCTAssertEqual(record?.id, fixed)
+    XCTAssertEqual(record?.slot, .breakSlot)
+    XCTAssertEqual(record?.kind, .consumed)
+    XCTAssertEqual(board.slot, .breakSlot)
+    XCTAssertEqual(board.kind, .consumed)
   }
 }

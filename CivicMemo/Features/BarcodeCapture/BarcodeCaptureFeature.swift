@@ -1,75 +1,57 @@
-import ComposableArchitecture
 import SwiftUI
 
-@Reducer
-struct BarcodeCaptureFeature {
-  @ObservableState
-  struct State: Equatable {
-    var manualCode = ""
-    var isWorking = false
-    var fault: String?
+@MainActor
+@Observable
+final class BarcodeCaptureFeature {
+  var manualCode = ""
+  var isWorking = false
+  var fault: String?
+  var onResolved: ((CatalogArticle) -> Void)?
+
+  private let catalog: CatalogGateway
+  private var lookupTask: Task<Void, Never>?
+
+  init(catalog: CatalogGateway = .worldOffice) {
+    self.catalog = catalog
   }
 
-  enum Action: BindableAction, Equatable {
-    case binding(BindingAction<State>)
-    case scanned(String)
-    case submitManual
-    case resolved(Result<CatalogArticle, CatalogFault>)
-    case delegate(Delegate)
-    enum Delegate: Equatable {
-      case resolved(CatalogArticle)
-    }
+  func scanned(_ raw: String) {
+    lookup(raw)
   }
 
-  @Dependency(\.catalogGateway) var catalogGateway
-
-  var body: some ReducerOf<Self> {
-    BindingReducer()
-    Reduce { state, action in
-      switch action {
-      case .binding:
-        return .none
-      case let .scanned(raw):
-        return lookup(raw, state: &state)
-      case .submitManual:
-        return lookup(state.manualCode, state: &state)
-      case let .resolved(.success(article)):
-        state.isWorking = false
-        return .send(.delegate(.resolved(article)))
-      case let .resolved(.failure(fault)):
-        state.isWorking = false
-        state.fault = fault.message
-        return .none
-      case .delegate:
-        return .none
-      }
-    }
+  func submitManual() {
+    lookup(manualCode)
   }
 
-  private func lookup(_ raw: String, state: inout State) -> Effect<Action> {
+  private func lookup(_ raw: String) {
     let code = CommodityCodePolicy.normalize(raw) ?? raw
-    state.isWorking = true
-    state.fault = nil
-    return .run { send in
+    isWorking = true
+    fault = nil
+    lookupTask?.cancel()
+    lookupTask = Task {
       do {
-        let article = try await catalogGateway.lookup(code)
-        await send(.resolved(.success(article)))
+        let article = try await catalog.lookup(code)
+        guard !Task.isCancelled else { return }
+        isWorking = false
+        onResolved?(article)
       } catch {
-        await send(.resolved(.failure(CatalogFault(message: error.localizedDescription))))
+        guard !Task.isCancelled else { return }
+        isWorking = false
+        fault = (error as? CatalogFault)?.message ?? error.localizedDescription
       }
     }
   }
 }
 
 struct BarcodeCaptureView: View {
-  @Bindable var store: StoreOf<BarcodeCaptureFeature>
+  @Bindable var board: BarcodeCaptureFeature
 
   var body: some View {
     ZStack {
       CivicBlotter()
       VStack(spacing: 16) {
         BarcodeScannerRepresentable { raw in
-          store.send(.scanned(raw))
+          board.scanned(raw)
         }
         .frame(height: 280)
         .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -78,18 +60,18 @@ struct BarcodeCaptureView: View {
           .font(CivicType.medium(13))
           .foregroundStyle(CivicPalette.slate)
           .frame(maxWidth: .infinity, alignment: .leading)
-        TextField("EAN / UPC digits", text: $store.manualCode)
+        TextField("EAN / UPC digits", text: $board.manualCode)
           .keyboardType(.numberPad)
           .font(CivicType.regular(16))
           .padding(12)
           .background(Color.white)
         CivicPrimaryButton(title: "Open code") {
-          store.send(.submitManual)
+          board.submitManual()
         }
-        if store.isWorking {
+        if board.isWorking {
           ProgressView()
         }
-        if let fault = store.fault {
+        if let fault = board.fault {
           Text(fault)
             .font(CivicType.regular(13))
             .foregroundStyle(CivicPalette.slate)

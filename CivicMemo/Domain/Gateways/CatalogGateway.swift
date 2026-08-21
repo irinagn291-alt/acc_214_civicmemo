@@ -1,23 +1,8 @@
 import Foundation
-import ComposableArchitecture
 
-@DependencyClient
 struct CatalogGateway: Sendable {
   var search: @Sendable (_ term: String) async throws -> [CatalogArticle]
   var lookup: @Sendable (_ code: String) async throws -> CatalogArticle
-}
-
-extension CatalogGateway: DependencyKey {
-  static let liveValue: CatalogGateway = .worldOffice
-  static let previewValue: CatalogGateway = .shelfOnly
-  static let testValue: CatalogGateway = .shelfOnly
-}
-
-extension DependencyValues {
-  var catalogGateway: CatalogGateway {
-    get { self[CatalogGateway.self] }
-    set { self[CatalogGateway.self] = newValue }
-  }
 }
 
 extension CatalogGateway {

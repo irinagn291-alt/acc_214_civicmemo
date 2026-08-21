@@ -1,25 +1,10 @@
 import Foundation
-import ComposableArchitecture
 
-@DependencyClient
 struct SeatFileArchive: Sendable {
   var loadRoster: @Sendable () throws -> HouseholdRoster
   var saveRoster: @Sendable (HouseholdRoster) throws -> Void
   var loadSnapshot: @Sendable (_ seatID: UUID) throws -> SeatSnapshot
   var saveSnapshot: @Sendable (SeatSnapshot) throws -> Void
-}
-
-extension SeatFileArchive: DependencyKey {
-  static let liveValue: SeatFileArchive = .disk
-  static let previewValue: SeatFileArchive = .memoryPreview
-  static let testValue: SeatFileArchive = .memoryPreview
-}
-
-extension DependencyValues {
-  var seatFileArchive: SeatFileArchive {
-    get { self[SeatFileArchive.self] }
-    set { self[SeatFileArchive.self] = newValue }
-  }
 }
 
 extension SeatFileArchive {

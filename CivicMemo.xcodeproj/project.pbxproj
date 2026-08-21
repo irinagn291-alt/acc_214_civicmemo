@@ -30,13 +30,12 @@
 		709E119EF8767B818958DDF0 /* CivicLaunchBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0898B4EF35B0DD35A232E71C /* CivicLaunchBoard.swift */; };
 		73DD42F6DE330ADC69FA4C50 /* EnergyUnitPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = C33BEF1D06BC67DC809A8F0E /* EnergyUnitPolicy.swift */; };
 		7B5A38EA87A86571BA100254 /* CommodityCodePolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7846CF6D8EEE83AACAED2A3 /* CommodityCodePolicyTests.swift */; };
-		7EB44FF8D104AC62940E0D71 /* ComposableArchitecture in Frameworks */ = {isa = PBXBuildFile; productRef = 78E70AA5EF45B790786C2119 /* ComposableArchitecture */; };
+		7EB44FF8D104AC62940E0D71 /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = F94243A8CCA2FEE559F122DB /* Alamofire */; };
 		97469160A75F0BE881A91B13 /* BarcodeScannerRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 756BCBCB8D87B996008B7A39 /* BarcodeScannerRepresentable.swift */; };
 		9CD3AC120117C11C8366B9B7 /* CatalogGateway.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24E3065907BC793FFCCD8223 /* CatalogGateway.swift */; };
 		A6D1446E621157164BB72D42 /* LedgerEndpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28809D5DF0053992FDE61F72 /* LedgerEndpoint.swift */; };
 		B26D025E6319A391421B4CD0 /* IntakeLedgerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A536CB44E69D133C63227286 /* IntakeLedgerTests.swift */; };
 		BF3B7CE8ECA83F532C598E6D /* CatalogLookupFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 222844913D3B6F11BA32D9BA /* CatalogLookupFeature.swift */; };
-		C93D866CB6623C33E20F243B /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = F94243A8CCA2FEE559F122DB /* Alamofire */; };
 		CEF833CB04B6E16D1165EF58 /* BriefingFeature.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85097FB9FA909B81C759D62F /* BriefingFeature.swift */; };
 		D0E6D8137F68285278F0C0C3 /* NutritionQuota.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7A5CE6F9E188225DFC8D6E /* NutritionQuota.swift */; };
 		D3551024FD6AC43DF428CE04 /* DayStamp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A277F07C87ED6720761B0067 /* DayStamp.swift */; };
@@ -114,8 +113,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7EB44FF8D104AC62940E0D71 /* ComposableArchitecture in Frameworks */,
-				C93D866CB6623C33E20F243B /* Alamofire in Frameworks */,
+				7EB44FF8D104AC62940E0D71 /* Alamofire in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -413,7 +411,6 @@
 			);
 			name = CivicMemo;
 			packageProductDependencies = (
-				78E70AA5EF45B790786C2119 /* ComposableArchitecture */,
 				F94243A8CCA2FEE559F122DB /* Alamofire */,
 			);
 			productName = CivicMemo;
@@ -463,7 +460,6 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				E56CA54D6C223360F3613A78 /* XCRemoteSwiftPackageReference "Alamofire" */,
-				73A6EE2745703ADD4295EE48 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 96D334F6B0969163A7DBCE3C /* Products */;
@@ -559,7 +555,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CivicMemo/Resources/Info.plist;
@@ -570,7 +566,6 @@
 				INFOPLIST_KEY_UILaunchScreen_UIColorName = CivicIce;
 				INFOPLIST_KEY_UILaunchScreen_UIImageName = Splash;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -582,7 +577,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_STRICT_CONCURRENCY = complete;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -592,7 +587,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = CivicMemo/Resources/Info.plist;
@@ -603,7 +598,6 @@
 				INFOPLIST_KEY_UILaunchScreen_UIColorName = CivicIce;
 				INFOPLIST_KEY_UILaunchScreen_UIImageName = Splash;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -615,7 +609,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ENABLE_EXPLICIT_MODULES = NO;
 				SWIFT_STRICT_CONCURRENCY = complete;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -813,16 +807,6 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		73A6EE2745703ADD4295EE48 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/pointfreeco/swift-composable-architecture";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.26.1;
-			};
-			traits = (
-			);
-		};
 		E56CA54D6C223360F3613A78 /* XCRemoteSwiftPackageReference "Alamofire" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/wrandecima-bit/Alamofire";
@@ -834,11 +818,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		78E70AA5EF45B790786C2119 /* ComposableArchitecture */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 73A6EE2745703ADD4295EE48 /* XCRemoteSwiftPackageReference "swift-composable-architecture" */;
-			productName = ComposableArchitecture;
-		};
 		F94243A8CCA2FEE559F122DB /* Alamofire */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E56CA54D6C223360F3613A78 /* XCRemoteSwiftPackageReference "Alamofire" */;

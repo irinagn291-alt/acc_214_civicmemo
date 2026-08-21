@@ -1,43 +1,22 @@
-import ComposableArchitecture
 import SwiftUI
 
-@Reducer
-struct BriefingFeature {
-  @ObservableState
-  struct State: Equatable {
-    var page = 0
+@MainActor
+@Observable
+final class BriefingFeature {
+  var page = 0
+  var onFinished: (() -> Void)?
+
+  func nextTapped() {
+    page += 1
   }
 
-  enum Action: Equatable {
-    case pageChanged(Int)
-    case nextTapped
-    case finishTapped
-    case delegate(Delegate)
-    enum Delegate: Equatable {
-      case finished
-    }
-  }
-
-  var body: some ReducerOf<Self> {
-    Reduce { state, action in
-      switch action {
-      case let .pageChanged(page):
-        state.page = page
-        return .none
-      case .nextTapped:
-        state.page += 1
-        return .none
-      case .finishTapped:
-        return .send(.delegate(.finished))
-      case .delegate:
-        return .none
-      }
-    }
+  func finishTapped() {
+    onFinished?()
   }
 }
 
 struct BriefingView: View {
-  @Bindable var store: StoreOf<BriefingFeature>
+  @Bindable var board: BriefingFeature
 
   private let pages: [(image: String, title: String, note: String)] = [
     ("BriefingWelcome", "Civic desk", "A quiet office memo for energy and macros. Local only — no account."),
@@ -51,7 +30,7 @@ struct BriefingView: View {
       CivicBlotter()
       GeometryReader { geo in
       VStack(spacing: 20) {
-        TabView(selection: $store.page.sending(\.pageChanged)) {
+        TabView(selection: $board.page) {
           ForEach(Array(pages.enumerated()), id: \.offset) { index, page in
             VStack(spacing: 16) {
               Image(page.image)
@@ -77,11 +56,11 @@ struct BriefingView: View {
         }
         .tabViewStyle(.page(indexDisplayMode: .always))
         .frame(width: geo.size.width)
-        CivicPrimaryButton(title: store.page == pages.count - 1 ? "Open the desk" : "Next") {
-          if store.page == pages.count - 1 {
-            store.send(.finishTapped)
+        CivicPrimaryButton(title: board.page == pages.count - 1 ? "Open the desk" : "Next") {
+          if board.page == pages.count - 1 {
+            board.finishTapped()
           } else {
-            store.send(.nextTapped)
+            board.nextTapped()
           }
         }
         .padding(.horizontal, 24)
@@ -94,5 +73,5 @@ struct BriefingView: View {
 }
 
 #Preview {
-  BriefingView(store: Store(initialState: BriefingFeature.State()) { BriefingFeature() })
+  BriefingView(board: BriefingFeature())
 }

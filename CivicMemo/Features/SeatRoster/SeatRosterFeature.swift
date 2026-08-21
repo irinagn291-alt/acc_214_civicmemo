@@ -1,81 +1,57 @@
-import ComposableArchitecture
 import SwiftUI
 
-@Reducer
-struct SeatRosterFeature {
-  @ObservableState
-  struct State: Equatable {
-    var roster: HouseholdRoster
-    var notice: String?
+@MainActor
+@Observable
+final class SeatRosterFeature {
+  var roster: HouseholdRoster
+  var notice: String?
+  var onSwitched: ((UUID) -> Void)?
+  var onRosterChanged: ((HouseholdRoster) -> Void)?
+
+  private let makeID: () -> UUID
+
+  init(roster: HouseholdRoster, makeID: @escaping () -> UUID = { UUID() }) {
+    self.roster = roster
+    self.makeID = makeID
   }
 
-  enum Action: BindableAction, Equatable {
-    case binding(BindingAction<State>)
-    case activate(UUID)
-    case addSeat
-    case dropSeat(UUID)
-    case rename(UUID, String)
-    case delegate(Delegate)
-    enum Delegate: Equatable {
-      case switched(UUID)
-      case rosterChanged(HouseholdRoster)
-    }
+  func activate(_ id: UUID) {
+    guard roster.seats.contains(where: { $0.id == id }) else { return }
+    roster.activeSeatID = id
+    onSwitched?(id)
   }
 
-  @Dependency(\.uuid) var uuid
-
-  var body: some ReducerOf<Self> {
-    BindingReducer()
-    Reduce { state, action in
-      switch action {
-      case .binding:
-        return .none
-      case let .activate(id):
-        guard state.roster.seats.contains(where: { $0.id == id }) else { return .none }
-        state.roster.activeSeatID = id
-        return .send(.delegate(.switched(id)))
-      case .addSeat:
-        guard state.roster.seats.count < 4 else {
-          state.notice = "Four seats is the household ceiling."
-          return .none
-        }
-        let labels = ["Desk North", "Desk South", "Desk East", "Desk West"]
-        let initials = ["DN", "DS", "DE", "DW"]
-        let index = state.roster.seats.count
-        let seat = HouseholdSeat(id: uuid(), deskLabel: labels[index], initials: initials[index])
-        state.roster.seats.append(seat)
-        state.notice = nil
-        return .send(.delegate(.rosterChanged(state.roster)))
-      case let .dropSeat(id):
-        guard state.roster.seats.count > 2 else {
-          state.notice = "Two seats stay on the household desk."
-          return .none
-        }
-        state.roster.seats.removeAll { $0.id == id }
-        if state.roster.activeSeatID == id {
-          state.roster.activeSeatID = state.roster.seats[0].id
-          return .merge(
-            .send(.delegate(.rosterChanged(state.roster))),
-            .send(.delegate(.switched(state.roster.activeSeatID)))
-          )
-        }
-        return .send(.delegate(.rosterChanged(state.roster)))
-      case let .rename(id, label):
-        if let index = state.roster.seats.firstIndex(where: { $0.id == id }) {
-          state.roster.seats[index].deskLabel = label
-          let trimmed = label.trimmingCharacters(in: .whitespaces)
-          state.roster.seats[index].initials = String(trimmed.prefix(2)).uppercased()
-        }
-        return .send(.delegate(.rosterChanged(state.roster)))
-      case .delegate:
-        return .none
-      }
+  func addSeat() {
+    guard roster.seats.count < 4 else {
+      notice = "Four seats is the household ceiling."
+      return
     }
+    let labels = ["Desk North", "Desk South", "Desk East", "Desk West"]
+    let initials = ["DN", "DS", "DE", "DW"]
+    let index = roster.seats.count
+    roster.seats.append(HouseholdSeat(id: makeID(), deskLabel: labels[index], initials: initials[index]))
+    notice = nil
+    onRosterChanged?(roster)
+  }
+
+  func dropSeat(_ id: UUID) {
+    guard roster.seats.count > 2 else {
+      notice = "Two seats stay on the household desk."
+      return
+    }
+    roster.seats.removeAll { $0.id == id }
+    if roster.activeSeatID == id {
+      roster.activeSeatID = roster.seats[0].id
+      onRosterChanged?(roster)
+      onSwitched?(roster.activeSeatID)
+      return
+    }
+    onRosterChanged?(roster)
   }
 }
 
 struct SeatRosterView: View {
-  @Bindable var store: StoreOf<SeatRosterFeature>
+  @Bindable var board: SeatRosterFeature
 
   var body: some View {
     ZStack {
@@ -85,12 +61,12 @@ struct SeatRosterView: View {
           Text("2–4 local seats. Each desk has its own file.")
             .font(CivicType.regular(13))
             .foregroundStyle(CivicPalette.slate)
-          if let notice = store.notice {
+          if let notice = board.notice {
             Text(notice)
               .font(CivicType.regular(13))
               .foregroundStyle(CivicPalette.navy)
           }
-          ForEach(store.roster.seats) { seat in
+          ForEach(board.roster.seats) { seat in
             CivicCard {
               HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -101,15 +77,15 @@ struct SeatRosterView: View {
                     .foregroundStyle(CivicPalette.slate)
                 }
                 Spacer()
-                if store.roster.activeSeatID == seat.id {
+                if board.roster.activeSeatID == seat.id {
                   CivicChip(title: "Active", selected: true)
                 } else {
-                  Button("Sit") { store.send(.activate(seat.id)) }
+                  Button("Sit") { board.activate(seat.id) }
                     .font(CivicType.medium(13))
                     .foregroundStyle(CivicPalette.blue)
                 }
-                if store.roster.seats.count > 2 {
-                  Button("Drop") { store.send(.dropSeat(seat.id)) }
+                if board.roster.seats.count > 2 {
+                  Button("Drop") { board.dropSeat(seat.id) }
                     .font(CivicType.medium(13))
                     .foregroundStyle(CivicPalette.slate)
                 }
@@ -117,7 +93,7 @@ struct SeatRosterView: View {
             }
           }
           CivicPrimaryButton(title: "Add seat") {
-            store.send(.addSeat)
+            board.addSeat()
           }
         }
         .padding(16)

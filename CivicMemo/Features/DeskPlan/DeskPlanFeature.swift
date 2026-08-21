@@ -1,45 +1,33 @@
-import ComposableArchitecture
 import SwiftUI
 
-@Reducer
-struct DeskPlanFeature {
-  @ObservableState
-  struct State: Equatable {
-    var today: DayStamp
-    var selected: DayStamp
-    var records: [IntakeRecord]
-    var horizon = 14
+@MainActor
+@Observable
+final class DeskPlanFeature {
+  var today: DayStamp
+  var selected: DayStamp
+  var records: [IntakeRecord]
+  var horizon = 14
+  var onDelete: ((UUID) -> Void)?
 
+  init(today: DayStamp, selected: DayStamp, records: [IntakeRecord]) {
+    self.today = today
+    self.selected = selected
+    self.records = records
   }
 
-  enum Action: Equatable {
-    case select(DayStamp)
-    case delete(UUID)
-    case delegate(Delegate)
-    enum Delegate: Equatable {
-      case delete(UUID)
-    }
+  func select(_ day: DayStamp) {
+    selected = day
   }
 
-  var body: some ReducerOf<Self> {
-    Reduce { state, action in
-      switch action {
-      case let .select(day):
-        state.selected = day
-        return .none
-      case let .delete(id):
-        state.records.removeAll { $0.id == id }
-        return .send(.delegate(.delete(id)))
-      case .delegate:
-        return .none
-      }
-    }
+  func delete(_ id: UUID) {
+    records.removeAll { $0.id == id }
+    onDelete?(id)
   }
 }
 
 struct DeskPlanView: View {
-  let store: StoreOf<DeskPlanFeature>
-  @Dependency(\.calendar) var calendar
+  @Bindable var board: DeskPlanFeature
+  private let calendar = Calendar.current
 
   var body: some View {
     ZStack {
@@ -49,7 +37,7 @@ struct DeskPlanView: View {
           HStack(spacing: 8) {
             ForEach(planDays, id: \.self) { day in
               Button {
-                store.send(.select(day))
+                board.select(day)
               } label: {
                 VStack(spacing: 4) {
                   Text(short(day))
@@ -57,17 +45,17 @@ struct DeskPlanView: View {
                   Text("\(Int(energy(day).rounded()))")
                     .font(CivicType.semibold(12))
                 }
-                .foregroundStyle(store.selected == day ? .white : CivicPalette.navy)
+                .foregroundStyle(board.selected == day ? .white : CivicPalette.navy)
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
-                .background(store.selected == day ? CivicPalette.navy : Color.white)
+                .background(board.selected == day ? CivicPalette.navy : Color.white)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
               }
               .buttonStyle(.plain)
             }
           }
         }
-        let rows = plannedRows(on: store.selected)
+        let rows = plannedRows(on: board.selected)
         if rows.isEmpty {
           CivicEmptyBoard(
             image: "EmptyDesk",
@@ -92,7 +80,7 @@ struct DeskPlanView: View {
                         .foregroundStyle(CivicPalette.slate)
                     }
                     Spacer()
-                    Button("Drop") { store.send(.delete(row.id)) }
+                    Button("Drop") { board.delete(row.id) }
                       .font(CivicType.medium(12))
                       .foregroundStyle(CivicPalette.slate)
                   }
@@ -110,11 +98,11 @@ struct DeskPlanView: View {
   }
 
   private var planDays: [DayStamp] {
-    (0..<store.horizon).map { store.today.shifting(days: $0, calendar: calendar) }
+    (0..<board.horizon).map { board.today.shifting(days: $0, calendar: calendar) }
   }
 
   private func plannedRows(on day: DayStamp) -> [IntakeRecord] {
-    store.records.filter { $0.kind == .scheduled && $0.day == day }
+    board.records.filter { $0.kind == .scheduled && $0.day == day }
   }
 
   private func short(_ day: DayStamp) -> String {

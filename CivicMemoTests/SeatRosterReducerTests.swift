@@ -3,8 +3,7 @@ import XCTest
 
 @MainActor
 final class SeatRosterReducerTests: XCTestCase {
-  func testRefusesFifthSeatAndSecondDrop() async {
-    // Given
+  func testRefusesFifthSeatAndSecondDrop() {
     let seats = [
       HouseholdSeat(id: UUID(uuidString: "11111111-1111-1111-1111-111111111111")!, deskLabel: "Desk North", initials: "DN"),
       HouseholdSeat(id: UUID(uuidString: "22222222-2222-2222-2222-222222222222")!, deskLabel: "Desk South", initials: "DS"),
@@ -17,17 +16,11 @@ final class SeatRosterReducerTests: XCTestCase {
       briefingCompleted: true,
       demoPlanted: true
     )
-    let store = TestStore(initialState: SeatRosterFeature.State(roster: roster)) {
-      SeatRosterFeature()
-    }
+    let board = SeatRosterFeature(roster: roster)
+    board.addSeat()
 
-    // When
-    await store.send(.addSeat) {
-      $0.notice = "Four seats is the household ceiling."
-    }
-
-    // Then
-    XCTAssertEqual(store.state.roster.seats.count, 4)
+    XCTAssertEqual(board.notice, "Four seats is the household ceiling.")
+    XCTAssertEqual(board.roster.seats.count, 4)
 
     let pair = HouseholdRoster(
       seats: Array(seats.prefix(2)),
@@ -35,16 +28,10 @@ final class SeatRosterReducerTests: XCTestCase {
       briefingCompleted: true,
       demoPlanted: true
     )
-    let pairStore = TestStore(initialState: SeatRosterFeature.State(roster: pair)) {
-      SeatRosterFeature()
-    }
+    let pairBoard = SeatRosterFeature(roster: pair)
+    pairBoard.dropSeat(seats[1].id)
 
-    // When
-    await pairStore.send(.dropSeat(seats[1].id)) {
-      $0.notice = "Two seats stay on the household desk."
-    }
-
-    // Then
-    XCTAssertEqual(pairStore.state.roster.seats.count, 2)
+    XCTAssertEqual(pairBoard.notice, "Two seats stay on the household desk.")
+    XCTAssertEqual(pairBoard.roster.seats.count, 2)
   }
 }

@@ -1,67 +1,52 @@
-import ComposableArchitecture
 import SwiftUI
 
-@Reducer
-struct ArticleBriefFeature {
-  @ObservableState
-  struct State: Equatable {
-    var article: CatalogArticle
-    var grams: Double
-    var didPin = false
+@MainActor
+@Observable
+final class ArticleBriefFeature {
+  var article: CatalogArticle
+  var grams: Double
+  var didPin = false
+  var onContinue: ((CatalogArticle, Double) -> Void)?
+  var onPinWish: ((CatalogArticle) -> Void)?
 
-    var portion: MacroBundle {
-      article.portion(grams: grams)
-    }
+  init(article: CatalogArticle, grams: Double) {
+    self.article = article
+    self.grams = grams
   }
 
-  enum Action: BindableAction, Equatable {
-    case binding(BindingAction<State>)
-    case continueTapped
-    case pinWish
-    case delegate(Delegate)
-    enum Delegate: Equatable {
-      case continueAssign(article: CatalogArticle, grams: Double)
-      case pinWish(CatalogArticle)
-    }
+  var portion: MacroBundle {
+    article.portion(grams: grams)
   }
 
-  var body: some ReducerOf<Self> {
-    BindingReducer()
-    Reduce { state, action in
-      switch action {
-      case .binding:
-        return .none
-      case .continueTapped:
-        return .send(.delegate(.continueAssign(article: state.article, grams: state.grams)))
-      case .pinWish:
-        state.didPin = true
-        return .send(.delegate(.pinWish(state.article)))
-      case .delegate:
-        return .none
-      }
-    }
+  func continueTapped() {
+    onContinue?(article, grams)
+  }
+
+  func pinWish() {
+    didPin = true
+    onPinWish?(article)
   }
 }
 
 struct ArticleBriefView: View {
-  @Bindable var store: StoreOf<ArticleBriefFeature>
+  @Bindable var board: ArticleBriefFeature
 
   var body: some View {
     ZStack {
       CivicBlotter()
       ScrollView {
         VStack(alignment: .leading, spacing: 16) {
-          if let asset = store.article.shelfAsset {
+          if let asset = board.article.shelfAsset {
             Image(asset)
               .resizable()
               .scaledToFit()
               .frame(height: 140)
               .frame(maxWidth: .infinity)
           }
-          Text(store.article.displayName)
+          Text(board.article.displayName)
             .font(CivicType.bold(22))
             .foregroundStyle(CivicPalette.navy)
-          if let brand = store.article.brandLine {
+          if let brand = board.article.brandLine {
             Text(brand)
               .font(CivicType.regular(14))
               .foregroundStyle(CivicPalette.slate)
@@ -71,31 +56,31 @@ struct ArticleBriefView: View {
               Text("Per 100 g")
                 .font(CivicType.semibold(13))
                 .foregroundStyle(CivicPalette.navy)
-              macroLine(store.article.perHundred)
+              macroLine(board.article.perHundred)
             }
           }
           CivicCard {
             VStack(alignment: .leading, spacing: 10) {
-              Text("Portion  \(Int(store.grams)) g")
+              Text("Portion  \(Int(board.grams)) g")
                 .font(CivicType.semibold(13))
                 .foregroundStyle(CivicPalette.navy)
-              PortionSliderRepresentable(grams: $store.grams)
+              PortionSliderRepresentable(grams: $board.grams)
                 .frame(height: 32)
-              macroLine(store.portion)
+              macroLine(board.portion)
             }
           }
           CivicPrimaryButton(title: "Assign slot") {
-            store.send(.continueTapped)
+            board.continueTapped()
           }
           Button {
-            store.send(.pinWish)
+            board.pinWish()
           } label: {
-            Text(store.didPin ? "Pinned to wish board" : "Pin to wish board")
+            Text(board.didPin ? "Pinned to wish board" : "Pin to wish board")
               .font(CivicType.medium(14))
               .foregroundStyle(CivicPalette.blue)
               .frame(maxWidth: .infinity)
           }
-          .disabled(store.didPin)
+          .disabled(board.didPin)
         }
         .padding(16)
       }

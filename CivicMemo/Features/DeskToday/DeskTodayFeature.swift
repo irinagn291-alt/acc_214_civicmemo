@@ -1,85 +1,90 @@
-import ComposableArchitecture
 import SwiftUI
 
-@Reducer
-struct DeskTodayFeature {
-  @ObservableState
-  struct State: Equatable {
-    var snapshot: SeatSnapshot
-    var day: DayStamp
-    var memoText: String = ""
+@MainActor
+@Observable
+final class DeskTodayFeature {
+  var snapshot: SeatSnapshot
+  var day: DayStamp
+  var memoText: String = ""
 
-    var consumed: [IntakeRecord] {
-      snapshot.records.filter { $0.kind == .consumed && $0.day == day }
-    }
+  var onOpenLookup: (() -> Void)?
+  var onOpenCapture: (() -> Void)?
+  var onOpenEaten: (() -> Void)?
+  var onOpenWish: (() -> Void)?
+  var onOpenQuota: (() -> Void)?
+  var onOpenPlan: (() -> Void)?
+  var onOpenSeats: (() -> Void)?
 
-    var totals: MacroBundle {
-      snapshot.consumedBundle(on: day)
-    }
+  private let archive: SeatFileArchive
+  private let calendar: Calendar
+
+  init(
+    snapshot: SeatSnapshot,
+    day: DayStamp,
+    archive: SeatFileArchive = .disk,
+    calendar: Calendar = .current
+  ) {
+    self.snapshot = snapshot
+    self.day = day
+    self.archive = archive
+    self.calendar = calendar
+    self.memoText = DayMemoComposer.text(snapshot: snapshot, day: day, calendar: calendar)
   }
 
-  enum Action: Equatable {
-    case appear
-    case openLookup
-    case openCapture
-    case openEaten
-    case openWish
-    case openQuota
-    case openPlan
-    case openSeats
-    case applyCommit(IntakeRecord)
-    case deleteRecord(UUID)
-    case applyWish(CatalogArticle)
-    case unpinWish(String)
-    case replaceQuota(NutritionQuota)
-    case replaceSnapshot(SeatSnapshot)
+  var consumed: [IntakeRecord] {
+    snapshot.records.filter { $0.kind == .consumed && $0.day == day }
   }
 
-  @Dependency(\.seatFileArchive) var seatFileArchive
-  @Dependency(\.calendar) var calendar
-
-  var body: some ReducerOf<Self> {
-    Reduce { state, action in
-      switch action {
-      case .appear:
-        state.memoText = DayMemoComposer.text(snapshot: state.snapshot, day: state.day, calendar: calendar)
-        return .none
-      case .openLookup, .openCapture, .openEaten, .openWish, .openQuota, .openPlan, .openSeats:
-        return .none
-      case let .applyCommit(record):
-        state.snapshot.append(record)
-        return write(&state)
-      case let .deleteRecord(id):
-        state.snapshot.removeRecord(id)
-        return write(&state)
-      case let .applyWish(article):
-        _ = state.snapshot.pinWish(article)
-        return write(&state)
-      case let .unpinWish(sku):
-        state.snapshot.unpinWish(sku)
-        return write(&state)
-      case let .replaceQuota(quota):
-        state.snapshot.quota = quota
-        return write(&state)
-      case let .replaceSnapshot(snapshot):
-        state.snapshot = snapshot
-        state.memoText = DayMemoComposer.text(snapshot: snapshot, day: state.day, calendar: calendar)
-        return .none
-      }
-    }
+  var totals: MacroBundle {
+    snapshot.consumedBundle(on: day)
   }
 
-  private func write(_ state: inout State) -> Effect<Action> {
-    state.memoText = DayMemoComposer.text(snapshot: state.snapshot, day: state.day, calendar: calendar)
-    let snapshot = state.snapshot
-    return .run { _ in
-      try? seatFileArchive.saveSnapshot(snapshot)
-    }
+  func appear() {
+    refreshMemo()
+  }
+
+  func applyCommit(_ record: IntakeRecord) {
+    snapshot.append(record)
+    persist()
+  }
+
+  func deleteRecord(_ id: UUID) {
+    snapshot.removeRecord(id)
+    persist()
+  }
+
+  func applyWish(_ article: CatalogArticle) {
+    _ = snapshot.pinWish(article)
+    persist()
+  }
+
+  func unpinWish(_ sku: String) {
+    snapshot.unpinWish(sku)
+    persist()
+  }
+
+  func replaceQuota(_ quota: NutritionQuota) {
+    snapshot.quota = quota
+    persist()
+  }
+
+  func replaceSnapshot(_ snapshot: SeatSnapshot) {
+    self.snapshot = snapshot
+    refreshMemo()
+  }
+
+  private func persist() {
+    refreshMemo()
+    try? archive.saveSnapshot(snapshot)
+  }
+
+  private func refreshMemo() {
+    memoText = DayMemoComposer.text(snapshot: snapshot, day: day, calendar: calendar)
   }
 }
 
 struct DeskTodayView: View {
-  let store: StoreOf<DeskTodayFeature>
+  @Bindable var board: DeskTodayFeature
 
   var body: some View {
     ZStack {
@@ -90,14 +95,14 @@ struct DeskTodayView: View {
           meters
           slotStrip
           actions
-          if store.consumed.isEmpty {
+          if board.consumed.isEmpty {
             CivicEmptyBoard(
               image: "EmptyDesk",
               title: "Desk is clear",
               note: "Look up a commodity or scan a carton to write the first line."
             )
           } else {
-            ForEach(store.consumed) { row in
+            ForEach(board.consumed) { row in
               recordCard(row)
             }
           }
@@ -110,9 +115,9 @@ struct DeskTodayView: View {
     .toolbar {
       ToolbarItem(placement: .topBarLeading) {
         Button {
-          store.send(.openSeats)
+          board.onOpenSeats?()
         } label: {
-          Text(store.snapshot.seat.initials)
+          Text(board.snapshot.seat.initials)
             .font(CivicType.semibold(12))
             .foregroundStyle(.white)
             .frame(width: 32, height: 32)
@@ -121,14 +126,14 @@ struct DeskTodayView: View {
         }
       }
       ToolbarItem(placement: .topBarTrailing) {
-        ShareLink(item: store.memoText) {
+        ShareLink(item: board.memoText) {
           Text("Share")
             .font(CivicType.medium(14))
             .foregroundStyle(CivicPalette.blue)
         }
       }
     }
-    .onAppear { store.send(.appear) }
+    .onAppear { board.appear() }
   }
 
   private var header: some View {
@@ -139,7 +144,7 @@ struct DeskTodayView: View {
         .frame(width: 56, height: 56)
         .clipShape(RoundedRectangle(cornerRadius: 8))
       VStack(alignment: .leading, spacing: 4) {
-        Text(store.snapshot.seat.deskLabel)
+        Text(board.snapshot.seat.deskLabel)
           .font(CivicType.bold(20))
           .foregroundStyle(CivicPalette.navy)
         Text("Household memo · local seats")
@@ -153,10 +158,10 @@ struct DeskTodayView: View {
   private var meters: some View {
     CivicCard {
       VStack(spacing: 12) {
-        QuotaMeter(title: "Energy", value: store.totals.energyKcal, cap: store.snapshot.quota.energyKcal, unit: "kcal")
-        QuotaMeter(title: "Protein", value: store.totals.proteinGrams, cap: store.snapshot.quota.proteinGrams, unit: "g")
-        QuotaMeter(title: "Carbs", value: store.totals.carbGrams, cap: store.snapshot.quota.carbGrams, unit: "g")
-        QuotaMeter(title: "Fat", value: store.totals.fatGrams, cap: store.snapshot.quota.fatGrams, unit: "g")
+        QuotaMeter(title: "Energy", value: board.totals.energyKcal, cap: board.snapshot.quota.energyKcal, unit: "kcal")
+        QuotaMeter(title: "Protein", value: board.totals.proteinGrams, cap: board.snapshot.quota.proteinGrams, unit: "g")
+        QuotaMeter(title: "Carbs", value: board.totals.carbGrams, cap: board.snapshot.quota.carbGrams, unit: "g")
+        QuotaMeter(title: "Fat", value: board.totals.fatGrams, cap: board.snapshot.quota.fatGrams, unit: "g")
       }
     }
   }
@@ -184,9 +189,9 @@ struct DeskTodayView: View {
   private var actions: some View {
     VStack(spacing: 10) {
       HStack(spacing: 10) {
-        CivicPrimaryButton(title: "Lookup") { store.send(.openLookup) }
+        CivicPrimaryButton(title: "Lookup") { board.onOpenLookup?() }
         Button {
-          store.send(.openCapture)
+          board.onOpenCapture?()
         } label: {
           Text("Scan")
             .font(CivicType.semibold(16))
@@ -199,10 +204,10 @@ struct DeskTodayView: View {
         .buttonStyle(.plain)
       }
       HStack(spacing: 10) {
-        navChip("Eaten") { store.send(.openEaten) }
-        navChip("Wish") { store.send(.openWish) }
-        navChip("Goals") { store.send(.openQuota) }
-        navChip("Plan") { store.send(.openPlan) }
+        navChip("Eaten") { board.onOpenEaten?() }
+        navChip("Wish") { board.onOpenWish?() }
+        navChip("Goals") { board.onOpenQuota?() }
+        navChip("Plan") { board.onOpenPlan?() }
       }
     }
   }
@@ -237,7 +242,7 @@ struct DeskTodayView: View {
         }
         Spacer()
         Button {
-          store.send(.deleteRecord(row.id))
+          board.deleteRecord(row.id)
         } label: {
           Text("Drop")
             .font(CivicType.medium(12))

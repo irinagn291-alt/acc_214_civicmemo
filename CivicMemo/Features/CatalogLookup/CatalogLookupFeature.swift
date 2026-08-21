@@ -1,104 +1,81 @@
-import ComposableArchitecture
 import SwiftUI
 
-@Reducer
-struct CatalogLookupFeature {
-  @ObservableState
-  struct State: Equatable {
-    var query = ""
-    var hits: [CatalogArticle] = []
-    var isWorking = false
-    var fault: String?
+@MainActor
+@Observable
+final class CatalogLookupFeature {
+  var query = ""
+  var hits: [CatalogArticle] = []
+  var isWorking = false
+  var fault: String?
+  var onPicked: ((CatalogArticle) -> Void)?
+
+  private let catalog: CatalogGateway
+  private var lookupTask: Task<Void, Never>?
+
+  init(catalog: CatalogGateway = .worldOffice) {
+    self.catalog = catalog
   }
 
-  enum Action: BindableAction, Equatable {
-    case binding(BindingAction<State>)
-    case appear
-    case submitLookup
-    case hitsReady(Result<[CatalogArticle], CatalogFault>)
-    case pick(CatalogArticle)
-    case delegate(Delegate)
-    enum Delegate: Equatable {
-      case picked(CatalogArticle)
+  func scheduleLookup() {
+    lookupTask?.cancel()
+    lookupTask = Task {
+      try? await Task.sleep(nanoseconds: 380_000_000)
+      guard !Task.isCancelled else { return }
+      await submitLookup()
     }
   }
 
-  private enum CancelID { case lookup }
-
-  @Dependency(\.catalogGateway) var catalogGateway
-  @Dependency(\.continuousClock) var clock
-
-  var body: some ReducerOf<Self> {
-    BindingReducer()
-    Reduce { state, action in
-      switch action {
-      case .binding(\.query):
-        return .run { send in
-          try await clock.sleep(for: .milliseconds(380))
-          await send(.submitLookup)
-        }
-        .cancellable(id: CancelID.lookup, cancelInFlight: true)
-      case .binding:
-        return .none
-      case .appear:
-        return .none
-      case .submitLookup:
-        let term = state.query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !term.isEmpty else {
-          state.hits = []
-          state.isWorking = false
-          return .none
-        }
-        state.isWorking = true
-        state.fault = nil
-        return .run { send in
-          do {
-            let rows = try await catalogGateway.search(term)
-            await send(.hitsReady(.success(rows)))
-          } catch {
-            await send(.hitsReady(.failure(CatalogFault(message: error.localizedDescription))))
-          }
-        }
-        .cancellable(id: CancelID.lookup, cancelInFlight: true)
-      case let .hitsReady(.success(rows)):
-        state.isWorking = false
-        state.hits = rows
-        return .none
-      case let .hitsReady(.failure(fault)):
-        state.isWorking = false
-        state.fault = fault.message
-        return .none
-      case let .pick(article):
-        return .send(.delegate(.picked(article)))
-      case .delegate:
-        return .none
-      }
+  func submitLookup() async {
+    let term = query.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !term.isEmpty else {
+      hits = []
+      isWorking = false
+      return
     }
+    isWorking = true
+    fault = nil
+    do {
+      let rows = try await catalog.search(term)
+      guard !Task.isCancelled else { return }
+      isWorking = false
+      hits = rows
+    } catch {
+      guard !Task.isCancelled else { return }
+      isWorking = false
+      fault = (error as? CatalogFault)?.message ?? error.localizedDescription
+    }
+  }
+
+  func pick(_ article: CatalogArticle) {
+    onPicked?(article)
   }
 }
 
 struct CatalogLookupView: View {
-  @Bindable var store: StoreOf<CatalogLookupFeature>
+  @Bindable var board: CatalogLookupFeature
 
   var body: some View {
     ZStack {
       CivicBlotter()
       ScrollView {
         VStack(alignment: .leading, spacing: 16) {
-          TextField("Commodity name", text: $store.query)
+          TextField("Commodity name", text: $board.query)
             .font(CivicType.regular(16))
             .padding(12)
             .background(Color.white)
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(CivicPalette.fog))
             .textInputAutocapitalization(.never)
+            .onChange(of: board.query) { _, _ in
+              board.scheduleLookup()
+            }
           CivicPrimaryButton(title: "Search catalog") {
-            store.send(.submitLookup)
+            Task { await board.submitLookup() }
           }
-          if store.isWorking {
+          if board.isWorking {
             ProgressView()
               .frame(maxWidth: .infinity)
           }
-          if let fault = store.fault {
+          if let fault = board.fault {
             Text(fault)
               .font(CivicType.regular(13))
               .foregroundStyle(CivicPalette.slate)
@@ -109,11 +86,11 @@ struct CatalogLookupView: View {
           ForEach(CivicDemoSeed.shelf) { article in
             articleRow(article)
           }
-          if !store.hits.isEmpty {
+          if !board.hits.isEmpty {
             Text("Catalog hits")
               .font(CivicType.semibold(14))
               .foregroundStyle(CivicPalette.navy)
-            ForEach(store.hits) { article in
+            ForEach(board.hits) { article in
               articleRow(article)
             }
           }
@@ -123,12 +100,11 @@ struct CatalogLookupView: View {
     }
     .navigationTitle("Lookup")
     .navigationBarTitleDisplayMode(.inline)
-    .onAppear { store.send(.appear) }
   }
 
   private func articleRow(_ article: CatalogArticle) -> some View {
     Button {
-      store.send(.pick(article))
+      board.pick(article)
     } label: {
       CivicCard {
         HStack(spacing: 12) {

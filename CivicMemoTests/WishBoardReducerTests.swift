@@ -3,36 +3,23 @@ import XCTest
 
 @MainActor
 final class WishBoardReducerTests: XCTestCase {
-  func testPinRefusesDuplicateSKU() async {
-    // Given
+  func testPinRefusesDuplicateSKU() {
     let article = CivicDemoSeed.shelf[4]
     let existing = WishListing(id: article.id, article: article)
-    let store = TestStore(initialState: WishBoardFeature.State(wishes: [existing])) {
-      WishBoardFeature()
-    }
+    let board = WishBoardFeature(wishes: [existing])
 
-    // When
-    await store.send(.pin(article)) {
-      $0.notice = "That SKU is already on the wish board."
-    }
+    board.pin(article)
 
-    // Then
-    XCTAssertEqual(store.state.wishes.count, 1)
+    XCTAssertEqual(board.notice, "That SKU is already on the wish board.")
+    XCTAssertEqual(board.wishes.count, 1)
   }
 
-  func testPinAcceptsNewSKU() async {
-    // Given
+  func testPinAcceptsNewSKU() {
     let article = CivicDemoSeed.shelf[4]
-    let store = TestStore(initialState: WishBoardFeature.State(wishes: [])) {
-      WishBoardFeature()
-    }
+    let board = WishBoardFeature(wishes: [])
 
-    // When
-    await store.send(.pin(article)) {
-      $0.wishes = [WishListing(id: article.id, article: article)]
-    }
+    board.pin(article)
 
-    // Then
-    XCTAssertEqual(store.state.wishes.first?.id, article.id)
+    XCTAssertEqual(board.wishes.first?.id, article.id)
   }
 }
