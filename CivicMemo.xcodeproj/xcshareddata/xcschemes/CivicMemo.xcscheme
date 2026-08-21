@@ -6,6 +6,24 @@
       parallelizeBuildables = "YES"
       buildImplicitDependencies = "YES"
       runPostActionsOnFailure = "NO">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Trust Swift macros"
+               scriptText = "mkdir -p &quot;${HOME}/Library/org.swift.swiftpm/security&quot;&#10;cp &quot;${SRCROOT}/ci_scripts/macros.json&quot; &quot;${HOME}/Library/org.swift.swiftpm/security/macros.json&quot;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "246E72F836CA080850FAB3BC"
+                     BuildableName = "CivicMemo.app"
+                     BlueprintName = "CivicMemo"
+                     ReferencedContainer = "container:CivicMemo.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
       <BuildActionEntries>
          <BuildActionEntry
             buildForTesting = "YES"
@@ -114,5 +132,23 @@
    <ArchiveAction
       buildConfiguration = "Release"
       revealArchiveInOrganizer = "YES">
+      <PreActions>
+         <ExecutionAction
+            ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
+            <ActionContent
+               title = "Trust Swift macros"
+               scriptText = "mkdir -p &quot;${HOME}/Library/org.swift.swiftpm/security&quot;&#10;cp &quot;${SRCROOT}/ci_scripts/macros.json&quot; &quot;${HOME}/Library/org.swift.swiftpm/security/macros.json&quot;">
+               <EnvironmentBuildable>
+                  <BuildableReference
+                     BuildableIdentifier = "primary"
+                     BlueprintIdentifier = "246E72F836CA080850FAB3BC"
+                     BuildableName = "CivicMemo.app"
+                     BlueprintName = "CivicMemo"
+                     ReferencedContainer = "container:CivicMemo.xcodeproj">
+                  </BuildableReference>
+               </EnvironmentBuildable>
+            </ActionContent>
+         </ExecutionAction>
+      </PreActions>
    </ArchiveAction>
 </Scheme>

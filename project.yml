@@ -78,9 +78,23 @@ schemes:
       targets:
         CivicMemo: all
         CivicMemoTests: [test]
+      preActions:
+        - name: Trust Swift macros
+          settingsTarget: CivicMemo
+          script: |
+            mkdir -p "${HOME}/Library/org.swift.swiftpm/security"
+            cp "${SRCROOT}/ci_scripts/macros.json" "${HOME}/Library/org.swift.swiftpm/security/macros.json"
     run:
       config: Debug
     test:
       config: Debug
       targets:
         - CivicMemoTests
+    archive:
+      config: Release
+      preActions:
+        - name: Trust Swift macros
+          settingsTarget: CivicMemo
+          script: |
+            mkdir -p "${HOME}/Library/org.swift.swiftpm/security"
+            cp "${SRCROOT}/ci_scripts/macros.json" "${HOME}/Library/org.swift.swiftpm/security/macros.json"
