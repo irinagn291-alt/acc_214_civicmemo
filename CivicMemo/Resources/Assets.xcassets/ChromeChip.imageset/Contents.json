@@ -1,0 +1,14 @@
+{
+  "images": [
+    {
+      "filename": "ChromeChip.png",
+      "idiom": "universal",
+      "scale": "1x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1,
+    "comment": "Flat vector UI chrome: status chip. A small navy #1B3A6B pill shape with a white inner stroke and a tiny blue #2F6FED square on the left like a status lamp. No text, no letters, no faces, no photorealism, no gradients, no 3D, no neon, clean geometric lines, isolated on light gray #E6EBF2."
+  }
+}

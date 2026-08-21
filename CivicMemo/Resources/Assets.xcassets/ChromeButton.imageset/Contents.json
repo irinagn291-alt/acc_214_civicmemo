@@ -1,0 +1,14 @@
+{
+  "images": [
+    {
+      "filename": "ChromeButton.png",
+      "idiom": "universal",
+      "scale": "1x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1,
+    "comment": "Flat vector UI chrome: primary button plate. A horizontal rounded rectangle (radius modest), fill bright blue #2F6FED, thin navy #1B3A6B outline, two small white corner ticks like a form stamp. No text, no letters, no icons of food, no faces, no photorealism, no gradients, no 3D, no neon, clean geometric lines, isolated on light gray #E6EBF2."
+  }
+}

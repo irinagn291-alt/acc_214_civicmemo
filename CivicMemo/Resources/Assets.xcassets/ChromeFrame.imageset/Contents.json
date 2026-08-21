@@ -1,0 +1,14 @@
+{
+  "images": [
+    {
+      "filename": "ChromeFrame.png",
+      "idiom": "universal",
+      "scale": "1x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1,
+    "comment": "Flat vector UI chrome: card frame. A white rounded rectangle with a thin navy #1B3A6B border, a short blue #2F6FED header bar at the top edge, and four tiny gray corner brackets. Empty inside. No text, no faces, no photorealism, no gradients, no 3D, no neon, clean geometric lines, corporate form card, isolated on light gray #E6EBF2."
+  }
+}

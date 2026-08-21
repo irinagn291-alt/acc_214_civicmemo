@@ -1,0 +1,14 @@
+{
+  "images": [
+    {
+      "filename": "ShelfApple.png",
+      "idiom": "universal",
+      "scale": "1x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1,
+    "comment": "Flat vector food product: ledger apple. A simple geometric apple, cool red #C44B4B, navy leaf, sitting on a gray ledger-book shape. Corporate office aesthetic, clean geometric lines, no text, no faces, no photorealism, no gradients, no 3D, no neon, centered, crisp edges. Palette: navy #1B3A6B, blue #2F6FED, red apple, white, gray."
+  }
+}

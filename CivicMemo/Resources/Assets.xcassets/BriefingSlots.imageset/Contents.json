@@ -1,0 +1,14 @@
+{
+  "images": [
+    {
+      "filename": "BriefingSlots.png",
+      "idiom": "universal",
+      "scale": "1x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1,
+    "comment": "Flat vector onboarding illustration: four workday meal slots as four equal desk trays in a 2x2 grid. Top-left tray with a sun disk (morning), top-right with a clock disk (midday), bottom-left with a building silhouette (afternoon), bottom-right with a small cup (break). Corporate office aesthetic, clean geometric lines, limited palette navy #1B3A6B, bright blue #2F6FED, cool gray #8A93A0, white, light gray #E6EBF2. No text, no letters, no faces, no photorealism, no gradients, no 3D, no neon, generous negative space, crisp edges."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "images": [
+    {
+      "filename": "TextureGrid.png",
+      "idiom": "universal",
+      "scale": "1x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1,
+    "comment": "Seamless flat vector background texture: civic graph paper. Pale ice #F4F7FB field with a faint cool gray #C5CDD6 square grid and a slightly stronger navy line every fifth square. Extremely understated, tileable stationery, no objects, no text, no faces, no photorealism, no gradients, no 3D, no neon, clean geometric lines."
+  }
+}

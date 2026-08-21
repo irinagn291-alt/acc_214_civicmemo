@@ -1,0 +1,14 @@
+{
+  "images": [
+    {
+      "filename": "TextureBlotter.png",
+      "idiom": "universal",
+      "scale": "1x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1,
+    "comment": "Seamless flat vector background texture: civic blotter paper. Very subtle light gray #E6EBF2 field with a faint navy #1B3A6B 8-degree ruled line grid and a few tiny pale blue #2F6FED corner registration marks. Extremely understated, suitable as an iOS background tile, no objects, no food, no text, no faces, no photorealism, no gradients, no 3D, no neon, clean geometric lines, corporate stationery feel."
+  }
+}

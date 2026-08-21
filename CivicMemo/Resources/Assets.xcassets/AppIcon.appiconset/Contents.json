@@ -1,0 +1,15 @@
+{
+  "images": [
+    {
+      "filename": "AppIcon.png",
+      "idiom": "universal",
+      "platform": "ios",
+      "size": "1024x1024"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1,
+    "comment": "Flat vector iOS app icon, square composition, corporate office style. A white memo folder standing upright with a navy blue header bar, a simple horizontal barcode of thick and thin navy bars, and a small blue circular check mark. Clean geometric lines, limited palette: navy #1B3A6B, bright blue #2F6FED, cool gray #8A93A0, white, light gray #E6EBF2. No text, no letters, no photorealism, no gradients, no 3D, no neon, generous padding from edges, centered, crisp edges, suitable as a 1024px app icon."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "images": [
+    {
+      "filename": "EmptyDesk.png",
+      "idiom": "universal",
+      "scale": "1x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1,
+    "comment": "Flat vector empty-state illustration: an empty civic desk. A white desk surface, a navy empty inbox tray, a lone gray paperclip, and a faint blue outline of a missing memo. Corporate office aesthetic, clean geometric lines, limited palette navy #1B3A6B, bright blue #2F6FED, cool gray #8A93A0, white, light gray #E6EBF2. No text, no faces, no photorealism, no gradients, no 3D, no neon, generous negative space, crisp edges."
+  }
+}

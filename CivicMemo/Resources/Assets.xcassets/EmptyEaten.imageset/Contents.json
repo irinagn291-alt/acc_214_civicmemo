@@ -1,0 +1,14 @@
+{
+  "images": [
+    {
+      "filename": "EmptyEaten.png",
+      "idiom": "universal",
+      "scale": "1x"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1,
+    "comment": "Flat vector empty-state illustration: no eaten entries. A white clipboard with a navy clip, completely blank page, and a small gray fork-and-knife crossed as a simple geometric mark in the corner. Corporate office aesthetic, clean geometric lines, limited palette navy #1B3A6B, bright blue #2F6FED, cool gray #8A93A0, white, light gray #E6EBF2. No text, no faces, no photorealism, no gradients, no 3D, no neon, generous negative space, crisp edges."
+  }
+}
